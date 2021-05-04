@@ -15,13 +15,26 @@ class CoursUser extends Model
 
     public $timestamps = false;
 
+
+    /**
+     * donner l'untilisateur qui s'est inscrit a cours donné
+     */
     public function user(){
+
         return $this->belongsTo(User::class, 'user_id');
+
     }
 
+
+
+    
+    /**
+     * donner le cours auquel cet utilisateur s'est inscrit
+     */
     public function cour(){
-        return $this->belongsTo(Cour::class, 'cours_id');
-    }
 
+        return $this->belongsTo(Cour::class, 'cours_id');
+
+    }
     
 }

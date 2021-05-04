@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Cour;
 use App\Models\CoursUser;
 use App\Models\Formation;
+use App\Models\Planning;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class CourController extends Controller
 {
+    /**
+     * lister tout les cours
+     */
     public function index(Request $request){
 
         $intitule=null;
@@ -30,6 +34,9 @@ class CourController extends Controller
         return View('cour.index', compact('cours', 'enseignants'));
     }
 
+    /**
+     * afficher le formulaire de creation d'un cours
+     */
     public function create_show(Request $request){
 
         $enseignants = User::where('type', 'ENSEIGNANT')->get();
@@ -42,7 +49,9 @@ class CourController extends Controller
         ]);
     }
 
-
+    /**
+     * submission du formulaire de creation d'un cours
+     */
     public function create(Request $request){
 
         $data = $request->validate([
@@ -53,9 +62,14 @@ class CourController extends Controller
         
         Cour::create($data);
 
-        return redirect('home');
+        session()->flash('success', "le cours a été crée");
+        return redirect()->route('cours_index');
     }
 
+
+    /**
+     * afficher le formulaire d'edition d'un cours
+     */
     public function edit_show(Request $request){
 
         $enseignants = User::where('type', 'ENSEIGNANT')->get();
@@ -75,7 +89,9 @@ class CourController extends Controller
         ]);
     }
 
-
+    /**
+     * submission du formulaire de edition d'un cours
+     */
     public function edit(Request $request){
  
         $data = $request->validate([
@@ -96,10 +112,13 @@ class CourController extends Controller
 
         $cour->save();
 
-        return redirect('home');
+        session()->flash('success', "le cours a été modifié");
+        return redirect()->route('cours_index');
     }
 
-
+    /**
+     * supression d'un cours
+     */
     public function delete(Request $request){
 
         $cour = Cour::where('id', $request->get('courId'))->first();
@@ -108,12 +127,10 @@ class CourController extends Controller
             return redirect('home');
         }
 
-        foreach ($cour->cours_users as $cour_user) {
-            CoursUser::where('cours_id',$cour->id)->delete();
-        }
-
-        Cour::destroy($cour->id);
-
-        return redirect('home');
+        $cour->force_delete();
+        
+        session()->flash('success', "le cours a été supprimé");
+        
+        return redirect()->route('cours_index');
     }
 }

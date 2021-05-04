@@ -18,24 +18,50 @@ class Planning extends Model
 
     public $timestamps = false;
 
+    /**
+     * donner le cours qui correspond a un planning ou une séance
+     */
     public function cour(){
 
         return $this->belongsTo(Cour::class, 'cours_id');
 
     }
 
-    public static function planning_perso($type ,$usertId=null){
-       
+    /**
+     * afficher tout les séance selon le profil demandé  
+     */
+    public static function planning_perso($type ,$usertId=null, $coursId=null, $date_debut){
+
+       $query= null;
+
        if($type === "enseignant"){
-            return self::planning_enseignant($usertId);
+            $query = self::planning_enseignant($usertId);
        }
 
        if($type === "etudiant"){
-            return self::planning_etudiant($usertId);
+            $query = self::planning_etudiant($usertId);
        }
+
+       if($coursId!=null){
+            $query = $query->where('cours.id',$coursId);
+        }
+        
+        if($date_debut!=null){
+
+            $date_d = clone $date_debut;
+
+            $date_fin = date_add($date_d, date_interval_create_from_date_string('7 days'));
+    
+            $query = $query->whereBetween('plannings.date_debut', [$date_debut->format('Y-m-d H:i:s'), $date_fin->format('Y-m-d H:i:s')]);
+
+        }
+
+        return $query->get();
     }
 
-
+    /**
+     * planning d'un enseignanat
+     */
     private static function planning_enseignant($enseignantId){
         
         $query = DB::table('plannings')
@@ -44,9 +70,12 @@ class Planning extends Model
             $query = $query->where('cours.user_id',$enseignantId);
         }
         
-        return $query->select('*')->get();
+        return $query->select('plannings.id','plannings.date_debut', 'plannings.date_fin', 'cours.intitule', 'cours.id as cours_id');
     }
 
+    /**
+     * planning d'un etudiant
+     */
     private static function planning_etudiant($etudiantId){
 
         $query = DB::table('plannings')
@@ -56,6 +85,6 @@ class Planning extends Model
             $query = $query->where('cours_users.user_id',$etudiantId);
         }
         
-        return $query->select('*')->get();
+        return $query->select('*');
     }
 }

@@ -32,8 +32,14 @@ Route::middleware('guest')->group(function(){
 Route::middleware('auth')->group(function(){
 
     Route::get('/planning', [App\Http\Controllers\PlanningController::class, 'index'])->name('planning_index');
-    Route::get('/planning/create', [App\Http\Controllers\PlanningController::class, 'create_show'])->name('planning_create_show');
-    Route::post('/planning/create', [App\Http\Controllers\PlanningController::class, 'create'])->name('planning_create');
+    
+    Route::middleware('admin_enseignant')->group(function(){
+        Route::get('/planning/create', [App\Http\Controllers\PlanningController::class, 'create_show'])->name('planning_create_show');
+        Route::post('/planning/create', [App\Http\Controllers\PlanningController::class, 'create'])->name('planning_create');
+        Route::get('/planning/edit', [App\Http\Controllers\PlanningController::class, 'edit_show'])->name('planning_edit_show');
+        Route::post('/planning/edit', [App\Http\Controllers\PlanningController::class, 'edit'])->name('planning_edit');
+        Route::post('/planning/delete', [App\Http\Controllers\PlanningController::class, 'delete'])->name('planning_delete');
+    });
 
     Route::post('/logout',[App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 

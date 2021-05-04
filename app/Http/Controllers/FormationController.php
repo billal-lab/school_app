@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 
 class FormationController extends Controller
 {
+
+    /**
+     * lister toute les formation
+     */
     public function index(){
 
         $formations = Formation::all();
@@ -18,12 +22,20 @@ class FormationController extends Controller
 
     }
 
+
+    /**
+     * afficher le formaulaire de creation d'une formation
+     */
     public function create_show(){
 
         return View('formation.create');
 
     }
 
+
+    /**
+     * persister le formualaire de creation d'une nouvelle formation 
+     */
     public function create(Request $request){
 
         $data = $request->validate([
@@ -33,10 +45,14 @@ class FormationController extends Controller
         Formation::create([
             'intitule' => $data['intitule']
         ]);
-        return redirect('home');
+
+        session()->flash('success', "la formation a été crée");
+        return redirect()->route('formations_index');
     }
 
-
+    /**
+     * afficher le formulaire d'edition d'une formation
+     */
     public function edit_show(Request $request){
 
         $formation = Formation::where('id', $request->get('id'))->first();
@@ -48,6 +64,10 @@ class FormationController extends Controller
         return View('formation.edit', compact('formation'));
     }
 
+
+    /**
+     * persister le formulaire d'edition d'une formation
+     */
     public function edit(Request $request){
 
         $data = $request->validate([
@@ -63,10 +83,17 @@ class FormationController extends Controller
         $formation->intitule = $data['intitule'];
 
         $formation->save();
-        
-        return redirect('home');
+
+        session()->flash('success', "la formation a été modifié");
+        return redirect()->route('formations_index');
+
     }
 
+
+    /**
+     * suprimmer une formation
+     * voir force_delete Dans Models\Formation
+     */
     public function delete(Request $request){
 
         if($request->get("formationId")){
@@ -77,17 +104,9 @@ class FormationController extends Controller
             return redirect("home");
         }
  
-        foreach ($formation->cours() as $cour) {
-            Cour::destroy($cour->id);
-        }
+        $formation->force_delete();
         
-        foreach ($formation->users as $user) {
-            $user->formation_id=null;
-            $user->save();
-        }
-
-        Formation::destroy($formation->id);
-
-        return View('home');
+        session()->flash('success', "la formation a été supprimé");
+        return redirect()->route('formations_index');
     } 
 }

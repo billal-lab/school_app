@@ -9,7 +9,7 @@ class Formation extends Model
 {
     use HasFactory;
 
-        /**
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -18,6 +18,9 @@ class Formation extends Model
         'intitule',
     ];
 
+    /**
+     * donner tout les cours de la formation
+     */
     public function cours($mots=null)
     {
         $query = $this->hasMany(Cour::class)->getQuery();
@@ -29,8 +32,28 @@ class Formation extends Model
         return $query->get();
     }
 
+    /**
+     * donner tout les etudiant de cet formation
+     */
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+
+    /**
+     * suprimmer une formation et tout ce qu'ne dépends (cours)
+     */
+    public function force_delete(){
+
+        foreach ($this->cours() as $cour) {
+            $cour->force_delete();
+        }
+        
+        foreach ($this->users as $user){
+            $user->formation_id = null;
+            $user->save();
+        }
+
+        Formation::destroy($this->id);
     }
 }

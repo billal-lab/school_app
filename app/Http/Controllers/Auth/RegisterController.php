@@ -71,6 +71,8 @@ class RegisterController extends Controller
 
         User::create($user_info);
 
+        session()->flash('success', "votre compte a été crée");
+
         return redirect()->route('login');
     }
 }

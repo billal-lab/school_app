@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cour;
 use App\Models\Formation;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -48,11 +49,17 @@ class UserController extends Controller
             $user = User::where('id', $request->get("id"))->first();
         }
 
-        if($user==null){
+        if(!$user){
             return redirect("home");
         }
+
+        if(Auth::user()->type!="admin" && $user->id != Auth::user()->id){
+            return redirect("home");
+        }
+
         
         $formations = Formation::all();
+        
         return View('user.edit_profil', compact('user', 'formations'));
     }
 
@@ -69,7 +76,11 @@ class UserController extends Controller
             $user = User::where('id', $request->get("userId"))->first();
         }
 
-        if($user==null){
+        if(!$user){
+            return redirect("home");
+        }
+
+        if(Auth::user()->type!="admin" && $user->id != Auth::user()->id){
             return redirect("home");
         }
 
@@ -78,7 +89,7 @@ class UserController extends Controller
             'prenom' => ['required', 'string', 'max:255']
         ]);
 
-        if(Auth::user()->type=='admin'){
+        if(Auth::user()->type=='admin' && $user->type!="admin"){
             $data['formation_id'] = $request['formation_id'];
             $data['type']= $request['type'];
         }
@@ -86,7 +97,9 @@ class UserController extends Controller
         User::where('id', $user->id)
             ->update($data);
 
-        return View('home');
+        session()->flash('success', "le profil a été modifié");
+    
+        return redirect()->route('home');
     }
 
 
@@ -103,7 +116,11 @@ class UserController extends Controller
             $user = User::where('id', $request->get("id"))->first();
         }
         
-        if($user==null || (Auth::user()->type!=="admin" && $user!=Auth::user())){
+        if(!$user){
+            return redirect("home");
+        }
+
+        if(Auth::user()->type!="admin" && $user->id != Auth::user()->id){
             return redirect("home");
         }
 
@@ -124,7 +141,11 @@ class UserController extends Controller
             $user = User::where('id', $request->get("userId"))->first();
         }
 
-        if($user==null || (Auth::user()->type!=="admin" && $user!=Auth::user())){
+        if(!$user){
+            return redirect("home");
+        }
+
+        if(Auth::user()->type!="admin" && $user->id != Auth::user()->id){
             return redirect("home");
         }
 
@@ -137,12 +158,14 @@ class UserController extends Controller
             'mdp' => Hash::make($data['mdp'])
         ]);
 
-        return View('home');
+        session()->flash('success', "le mot de passe a été modifié");
+
+        return redirect()->route('home');
     }
 
     /**
      * Show edit personal information.
-     *
+     * Voir force_delete dans Models\User
      * @return \Illuminate\Contracts\Support\Renderable
      */
     public function delete(Request $request)
@@ -156,10 +179,13 @@ class UserController extends Controller
             return redirect("home");
         }
 
+        $user->force_delete();
 
         User::destroy($user->id);
 
-        return View('home');
+        session()->flash('success', "l'utilisateur a été supprimé");
+        return redirect()->route('users_index');
+        
     }
 
     /**
@@ -194,9 +220,10 @@ class UserController extends Controller
             $data['formation_id'] = $request['formation_id'];
             $data['type']= $request['type'];
         }
-
+        
         User::create($data);
 
-        return View('home');
+        session()->flash('success', "l'utilisateur a été crée");
+        return redirect()->route('users_index');
     }
 }

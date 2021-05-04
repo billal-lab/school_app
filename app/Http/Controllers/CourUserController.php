@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Redirect;
 
 class CourUserController extends Controller
 {
+
+
+    /**
+     * lister les tout les cours de la formation
+     */
     public function index(Request $request){
 
         $mots = null;
@@ -18,11 +23,19 @@ class CourUserController extends Controller
             $mots = $request->get("mots");
         }
 
+        if(!Auth::user()->formation){
+            return redirect()->route('home');
+        }
+        
         $cours = Auth::user()->formation->cours($mots);
 
         return View('cours_user.index', compact('cours'));
     }
 
+
+    /**
+     * suscrire a un cours de la formation
+     */
     public function register(Request $request){
         CoursUser::create([
             'user_id' => Auth::user()->id,
@@ -31,7 +44,9 @@ class CourUserController extends Controller
         return redirect()->route('cours_users_index');
     }
 
-    
+    /**
+     * disincrire a un cours de la formation
+     */
     public function unregister(Request $request){
 
 
@@ -43,6 +58,9 @@ class CourUserController extends Controller
 
     }
 
+    /**
+     * lister les tout les cours auquel l'utilisateur s'est inscrit
+     */
     public function index_registred()
     {
         $cours_user = CoursUser::where('user_id', Auth::user()->id)->get();
@@ -54,9 +72,12 @@ class CourUserController extends Controller
         }
 
         return View('cours_user.index_registred', compact('cours'));
+        
     }
 
-
+    /**
+     * lister les tout les cours auquel l'utilisateur s'est responsable
+     */
     public function index_responsable_cours()
     {
         
